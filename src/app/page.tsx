@@ -5,8 +5,6 @@ import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, ShieldCheck, ShieldAlert, Cpu, Code2, Link, Sparkles, Download } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
-import { jsPDF } from "jspdf";
-import html2canvas from "html2canvas";
 import { playSound } from "@/utils/sounds";
 
 const API_URL = "/api";
@@ -181,57 +179,13 @@ export default function App() {
     }
   };
 
-  const handleDownloadPDF = async () => {
-    const reportElement = document.getElementById('audit-report-content');
-    if (!reportElement) return;
-    
-    // Temporarily adjust styles for better PDF capturing (e.g. padding to avoid edge cutoffs)
-    reportElement.style.padding = '20px';
-    const toastId = toast.loading('Exporting High-Res PDF...', { position: 'bottom-center' });
-    
-    try {
-      const canvas = await html2canvas(reportElement, {
-        backgroundColor: '#0a0a0a',
-        scale: 2, // High resolution
-        useCORS: true,
-        windowWidth: reportElement.scrollWidth,
-        windowHeight: reportElement.scrollHeight
-      });
-      
-      // Revert style
-      reportElement.style.padding = '';
-      
-      const imgData = canvas.toDataURL('image/png');
-      
-      // Standard A4 PDF size
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      
-      const imgHeight = (canvas.height * pdfWidth) / canvas.width;
-      let heightLeft = imgHeight;
-      let position = 0;
-
-      // Add first page
-      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
-      heightLeft -= pageHeight;
-
-      // Add subsequent pages if the content expects to scroll
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
-        heightLeft -= pageHeight;
-      }
-      
-      const filename = `Web3Guard_Audit_${address ? address.slice(0, 8) : 'RawCode'}.pdf`;
-      pdf.save(filename);
-      
-      toast.success('High-Res PDF successfully exported!', { id: toastId });
-    } catch (err) {
-      console.error(err);
-      toast.error('Failed to generate PDF.', { id: toastId });
-    }
+  const handleDownloadPDF = () => {
+    // Rely exclusively on native browser printing (which allows "Save as PDF")
+    // This utilizes the @media print CSS added to globals.css to perfectly format 
+    // the layout as a native, vector-perfect, selectable-text document instead of a blurry screenshot.
+    setTimeout(() => {
+      window.print();
+    }, 100);
   };
 
   return (
