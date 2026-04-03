@@ -185,26 +185,49 @@ export default function App() {
     const reportElement = document.getElementById('audit-report-content');
     if (!reportElement) return;
     
-    const toastId = toast.loading('Exporting PDF...', { position: 'bottom-center' });
+    // Temporarily adjust styles for better PDF capturing (e.g. padding to avoid edge cutoffs)
+    reportElement.style.padding = '20px';
+    const toastId = toast.loading('Exporting High-Res PDF...', { position: 'bottom-center' });
+    
     try {
       const canvas = await html2canvas(reportElement, {
         backgroundColor: '#0a0a0a',
-        scale: 2,
-        useCORS: true
+        scale: 2, // High resolution
+        useCORS: true,
+        windowWidth: reportElement.scrollWidth,
+        windowHeight: reportElement.scrollHeight
       });
+      
+      // Revert style
+      reportElement.style.padding = '';
+      
       const imgData = canvas.toDataURL('image/png');
       
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'px',
-        format: [canvas.width, canvas.height]
-      });
+      // Standard A4 PDF size
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
       
-      pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+      const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      // Add first page
+      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      // Add subsequent pages if the content expects to scroll
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+      
       const filename = `Web3Guard_Audit_${address ? address.slice(0, 8) : 'RawCode'}.pdf`;
       pdf.save(filename);
       
-      toast.success('PDF successfully exported!', { id: toastId });
+      toast.success('High-Res PDF successfully exported!', { id: toastId });
     } catch (err) {
       console.error(err);
       toast.error('Failed to generate PDF.', { id: toastId });
