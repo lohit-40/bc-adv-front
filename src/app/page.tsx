@@ -9,7 +9,7 @@ import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
 import { playSound } from "@/utils/sounds";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+const API_URL = "/api";
 
 const Chatbot = dynamic(() => import("@/components/Chatbot"), { ssr: false });
 const HistorySidebar = dynamic(() => import("@/components/HistorySidebar"), { ssr: false });

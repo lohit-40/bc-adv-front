@@ -6,7 +6,7 @@ import { ShieldCheck, ShieldAlert, FileCode2, ArrowLeft, Sparkles, Link as LinkI
 import Link from "next/link";
 import { Toaster, toast } from "react-hot-toast";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+const API_URL = "/api";
 
 interface Vulnerability {
   type: string;
